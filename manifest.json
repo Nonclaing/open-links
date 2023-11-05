@@ -13,10 +13,12 @@
     }
   },
   "background": {
-    "service_worker": "src/scripts/open-all.js",
+    "service_worker": "src/scripts/background.js",
     "type": "module"
   },
   "permissions": [
-    "contextMenus"
+    "contextMenus",
+    "activeTab",
+    "scripting"
   ]
 }

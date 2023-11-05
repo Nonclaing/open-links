@@ -1,32 +1,34 @@
-var contextMenuItem = {
-  "id": "openAll",
-  "title": "Открыть выделенные ссылки",
-  "contexts": ["selection"]
-}
+openAllLinks();
 
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create(contextMenuItem);
-});
-
-chrome.contextMenus.onClicked.addListener( (clickData) => contextMenuHandler(clickData));
-
-function contextMenuHandler(clickData) {
-  if (clickData.menuItemId === 'openAll' && clickData.selectionText) {
-    var allLinks = getAllLinks(clickData.selectionText);
-    openAllLinks(allLinks, clickData.pageUrl);
-  }
-}
-
-function getAllLinks(selectionText) {
-  var regExp = /\((.+?)\)/gm;
-  return [...selectionText.matchAll(regExp)];
-}
-
-function openAllLinks(links, currentUrl) {
-  links.forEach((elem) => {
-    var newLink = currentUrl + elem[1];
-    chrome.tabs.create({ url: newLink });
+function openAllLinks() {
+  const selectedHTML = getHTMLOfSelection();
+  const currentURL = window.location.protocol + '//' + window.location.host + window.location.pathname;
+  const regExp = /<a[^>]*?href=(["\'])?((?:.(?!\1|>))*.?)\1?/gm
+  const allMatches = [...selectedHTML.matchAll(regExp)];
+  allMatches.forEach((elem) => {
+    let newLink = currentURL + elem[2];
+    window.open(newLink, '_blank');
   })
 }
 
+function getHTMLOfSelection() {
+  var range;
+  if (document.selection && document.selection.createRange) {
+    range = document.selection.createRange();
+    return range.htmlText;
+  } else if (window.getSelection) {
+    var selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+      range = selection.getRangeAt(0);
+      var clonedSelection = range.cloneContents();
+      var div = document.createElement('div');
+      div.appendChild(clonedSelection);
+      return div.innerHTML;
+    } else {
+      return '';
+    }
+  } else {
+    return '';
+  }
+}
 
